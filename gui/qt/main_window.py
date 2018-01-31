@@ -36,7 +36,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
-from electrum.util import bh2u, bfh
+from electrum.util import bh2u, bfh, is_macOS
 
 from electrum import keystore, simple_config
 from electrum.bitcoin import COIN, is_address, TYPE_ADDRESS, NetworkConstants
@@ -1008,7 +1008,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         from .paytoedit import PayToEdit
         self.amount_e = BTCAmountEdit(self.get_decimal_point)
-        self.payto_e = PayToEdit(self)
+        self.payto_e = PayToEdit(self, show_qrscanner=(is_macOS is False))
         msg = _('Recipient of the funds.') + '\n\n'\
               + _('You may enter a Zclassic address, a label from your list of contacts (a list of completions will be proposed), or an alias (email-like address that forwards to a Zclassic address)')
         payto_label = HelpLabel(_('Pay to'), msg)
