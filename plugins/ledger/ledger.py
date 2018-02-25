@@ -60,6 +60,7 @@ class Ledger_Client():
     def versiontuple(self, v):
         return tuple(map(int, (v.split("."))))
 
+
     def test_pin_unlocked(func):
         """Function decorator to test the Ledger for being unlocked, and if not,
         raise a human-readable exception.

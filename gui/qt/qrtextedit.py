@@ -59,11 +59,7 @@ class ScanQRTextEdit(ButtonsTextEdit, MessageBoxMixin):
             data = ''
         if not data:
             data = ''
-        if self.allow_multi:
-            new_text = self.text() + data + '\n'
-        else:
-            new_text = data
-        self.setText(new_text)
+        self.setText(data)
         return data
 
     def contextMenuEvent(self, e):
