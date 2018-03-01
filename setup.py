@@ -9,6 +9,12 @@ import platform
 import imp
 import argparse
 
+with open('contrib/requirements/requirements.txt') as f:
+    requirements = f.read().splitlines()
+
+with open('contrib/requirements/requirements-hw.txt') as f:
+    requirements_hw = f.read().splitlines()
+
 version = imp.load_source('version', 'lib/version.py')
 
 
@@ -30,7 +36,7 @@ tests_requires = install_requires + readreqs('requirements_travis.txt')
 if sys.version_info[:3] < (3, 4, 0):
     sys.exit("Error: Electrum requires Python version >= 3.4.0...")
 
-data_files = []
+data_files = ['contrib/requirements/' + r for r in ['requirements.txt', 'requirements-hw.txt']]
 
 if platform.system() in ['Linux', 'FreeBSD', 'DragonFly']:
     parser = argparse.ArgumentParser()
@@ -51,8 +57,10 @@ if platform.system() in ['Linux', 'FreeBSD', 'DragonFly']:
 setup(
     name="Electrum-ZCL",
     version=version.ELECTRUM_VERSION,
-    install_requires=install_requires,
-    tests_require=tests_requires,
+    install_requires=requirements,
+    extras_require={
+        'hardware': requirements_hw,
+    },
     packages=[
         'electrum',
         'electrum_gui',

@@ -82,7 +82,9 @@ class ElectrumWindow(App):
     server_port = StringProperty('')
     num_chains = NumericProperty(0)
     blockchain_name = StringProperty('')
+    fee_status = StringProperty('Fee')
     blockchain_checkpoint = NumericProperty(0)
+    _fee_dialog = None
 
     auto_connect = BooleanProperty(False)
     def on_auto_connect(self, instance, x):
@@ -271,6 +273,7 @@ class ElectrumWindow(App):
         # cached dialogs
         self._settings_dialog = None
         self._password_dialog = None
+        self.fee_status = self.electrum_config.get_fee_status()
 
     def wallet_name(self):
         return os.path.basename(self.wallet.storage.path) if self.wallet else ' '
@@ -457,6 +460,7 @@ class ElectrumWindow(App):
         if self.network:
             interests = ['updated', 'status', 'new_transaction', 'verified', 'interfaces']
             self.network.register_callback(self.on_network_event, interests)
+            self.network.register_callback(self.on_fee, ['fee'])
             self.network.register_callback(self.on_quotes, ['on_quotes'])
             self.network.register_callback(self.on_history, ['on_history'])
         # URI passed in config
@@ -631,7 +635,7 @@ class ElectrumWindow(App):
             if not self.wallet.up_to_date or server_height == 0:
                 status = _("Synchronizing...")
             elif server_lag > 1:
-                status = _("Server lagging (%d blocks)"%server_lag)
+                status = _("Server lagging ({} blocks)").format(server_lag)
             else:
                 c, u, x = self.wallet.get_balance()
                 text = self.format_amount(c+x+u)
@@ -684,9 +688,6 @@ class ElectrumWindow(App):
     def on_resume(self):
         if self.nfcscanner:
             self.nfcscanner.nfc_enable()
-        # workaround p4a bug:
-        # show an empty info bubble, to refresh the display
-        self.show_info_bubble('', duration=0.1, pos=(0,0), width=1, arrow_pos=None)
 
     def on_size(self, instance, value):
         width, height = value
@@ -831,6 +832,18 @@ class ElectrumWindow(App):
         popup = AmountDialog(show_max, amount, cb)
         popup.open()
 
+    def fee_dialog(self, label, dt):
+        if self._fee_dialog is None:
+            from .uix.dialogs.fee_dialog import FeeDialog
+            def cb():
+                c = self.electrum_config
+                self.fee_status = c.get_fee_status()
+            self._fee_dialog = FeeDialog(self, self.electrum_config, cb)
+        self._fee_dialog.open()
+
+    def on_fee(self, event, *arg):
+        self.fee_status = self.electrum_config.get_fee_status()
+
     def protected(self, msg, f, args):
         if self.wallet.has_password():
             self.password_dialog(msg, f, args)
@@ -846,7 +859,7 @@ class ElectrumWindow(App):
     def _delete_wallet(self, b):
         if b:
             basename = os.path.basename(self.wallet.storage.path)
-            self.protected(_("Enter your PIN code to confirm deletion of %s") % basename, self.__delete_wallet, ())
+            self.protected(_("Enter your PIN code to confirm deletion of {}").format(basename), self.__delete_wallet, ())
 
     def __delete_wallet(self, pw):
         wallet_path = self.get_wallet_path()
@@ -928,6 +941,10 @@ class ElectrumWindow(App):
                 return
             if not self.wallet.can_export():
                 return
-            key = str(self.wallet.export_private_key(addr, password)[0])
-            pk_label.data = key
+            try:
+                key = str(self.wallet.export_private_key(addr, password)[0])
+                pk_label.data = key
+            except InvalidPassword:
+                self.show_error("Invalid PIN")
+                return
         self.protected(_("Enter your PIN code in order to decrypt your private key"), show_private_key, (addr, pk_label))

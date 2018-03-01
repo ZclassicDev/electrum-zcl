@@ -101,8 +101,7 @@ Run the docker image::
     ./run-docker.sh
 
 
-Building Releases
-=================
+See `contrib/build-osx/`.
 
 
 MacOS
@@ -117,7 +116,7 @@ Simply - ::
 Windows
 -------
 
-See `contrib/build-wine/README` file.
+See `contrib/build-wine/`.
 
 
 Android

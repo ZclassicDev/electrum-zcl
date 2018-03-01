@@ -215,7 +215,8 @@ class Blockchain(util.PrintError):
         if d < 0:
             chunk = chunk[-d:]
             d = 0
-        self.write(chunk, d)
+        truncate = index >= len(self.checkpoints)
+        self.write(chunk, d, truncate)
         self.swap_with_parent()
 
     def swap_with_parent(self):
@@ -351,7 +352,5 @@ class Blockchain(util.PrintError):
             self.save_chunk(idx, data)
             return True
         except BaseException as e:
-            import traceback
-            traceback.print_exc()
-            self.print_error('verify_chunk failed', str(e))
+            self.print_error('verify_chunk %d failed'%idx, str(e))
             return False
