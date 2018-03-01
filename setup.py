@@ -17,22 +17,6 @@ with open('contrib/requirements/requirements-hw.txt') as f:
 
 version = imp.load_source('version', 'lib/version.py')
 
-
-def readhere(path):
-    here = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(here, path), 'r') as fd:
-        return fd.read()
-
-
-def readreqs(path):
-    return [req for req in
-            [line.strip() for line in readhere(path).split('\n')]
-            if req and not req.startswith(('#', '-r'))]
-
-
-install_requires = readreqs('requirements.txt')
-tests_requires = install_requires + readreqs('requirements_travis.txt')
-
 if sys.version_info[:3] < (3, 4, 0):
     sys.exit("Error: Electrum requires Python version >= 3.4.0...")
 
