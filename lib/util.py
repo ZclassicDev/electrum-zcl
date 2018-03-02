@@ -484,8 +484,8 @@ def time_difference(distance_in_time, include_seconds):
 
 # For raw json, append /insight-api-zcash
 mainnet_block_explorers = {
-    'zcl-explorer.com': ('https://zcl-explorer.com',
-                        {'tx': 'tx', 'addr': 'address'}),
+    'zcl-explorer.com': ('https://zcl-explorer.com/',
+                        {'tx': 'tx/', 'addr': 'address/'}),
     'eu1.zcl-explorer.com': ('https://eu1.zcl-explorer.com',
                         {'tx': 'tx', 'addr': 'address'}),
     'as1.zcl-explorer.com': ('https://as1.zcl-explorer.com',
