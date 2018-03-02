@@ -19,7 +19,7 @@ echo "Compile the protobuf description file"
 protoc --proto_path=lib/ --python_out=lib/ lib/paymentrequest.proto
 
 echo "compiling translations"
-./config/make_locale
+./contrib/make_locale
 
 echo "Creating package $VERSION"
 sudo python3 setup.py sdist
