@@ -148,6 +148,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             if self.config.get('show_{}_tab'.format(name), False):
                 tabs.addTab(tab, icon, description.replace("&", ""))
 
+        self.config.set_key('show_addresses_tab', True)
+        self.config.set_key('show_contacts_tab', True)
+
         add_optional_tab(tabs, self.addresses_tab, QIcon(":icons/tab_addresses.png"), _("&Addresses"), "addresses")
         add_optional_tab(tabs, self.utxo_tab, QIcon(":icons/tab_coins.png"), _("Co&ins"), "utxo")
         add_optional_tab(tabs, self.contacts_tab, QIcon(":icons/tab_contacts.png"), _("Con&tacts"), "contacts")
