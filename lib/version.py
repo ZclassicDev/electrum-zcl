@@ -1,7 +1,7 @@
  # version of the client package
 ELECTRUM_VERSION = 'Z!1.0.5'
 # protocol version requested
-PROTOCOL_VERSION = '1.1'
+PROTOCOL_VERSION = '1.1' #TODO 1.1 compat?
 
 # The hash of the mnemonic seed must begin with this
 SEED_PREFIX      = '01'      # Standard wallet
