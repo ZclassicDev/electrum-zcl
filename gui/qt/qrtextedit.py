@@ -33,13 +33,15 @@ class ShowQRTextEdit(ButtonsTextEdit):
 
 class ScanQRTextEdit(ButtonsTextEdit, MessageBoxMixin):
 
-    def __init__(self, text="", allow_multi=False):
+    def __init__(self, text="", allow_multi=False, show_qrscanner=True):
         ButtonsTextEdit.__init__(self, text)
         self.allow_multi = allow_multi
+        self.show_qrscanner = show_qrscanner
         self.setReadOnly(0)
         self.addButton(":icons/file.png", self.file_input, _("Read file"))
-        icon = ":icons/qrcode_white.png" if ColorScheme.dark_scheme else ":icons/qrcode.png"
-        self.addButton(icon, self.qr_input, _("Read QR code"))
+        if self.show_qrscanner:
+            icon = ":icons/qrcode_white.png" if ColorScheme.dark_scheme else ":icons/qrcode.png"
+            self.addButton(icon, self.qr_input, _("Read QR code"))
         run_hook('scan_text_edit', self)
 
     def file_input(self):
