@@ -24,6 +24,7 @@ Development Version
 First, clone from Github::
 
     git clone https://github.com/z-classic/electrum-zcl.git
+    git checkout develop
     cd electrum-zcl
 
 For Mac:
