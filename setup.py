@@ -83,8 +83,8 @@ setup(
     scripts=['electrum-zcl'],
     data_files=data_files,
     description="Lightweight Zclassic Wallet",
-    author="BTCP Community",
-    author_email="csulmone@gmail.com",
+    author="Zclassic Developers",
+    author_email="zclassic.org@gmail.com",
     license="MIT Licence",
     url="https://zclassic.org",
     long_description="""Lightweight Zclassic Wallet"""
