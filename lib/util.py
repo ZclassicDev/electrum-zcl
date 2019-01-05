@@ -100,7 +100,7 @@ class Satoshis(object):
         return 'Satoshis(%d)'%self.value
 
     def __str__(self):
-        return format_satoshis(self.value) + " BTC"
+        return format_satoshis(self.value) + " ZCL"
 
 class Fiat(object):
     def __new__(cls, value, ccy):
@@ -409,7 +409,7 @@ def format_satoshis_plain(x, decimal_point = 8):
 def format_satoshis(x, is_diff=False, num_zeros = 0, decimal_point = 8, whitespaces=False):
     from locale import localeconv
     if x is None:
-        return 'unknown'
+        return 'Unknown'
     x = int(x)  # Some callers pass Decimal
     scale_factor = pow (10, decimal_point)
     integer_part = "{:n}".format(int(abs(x) / scale_factor))
@@ -496,6 +496,8 @@ mainnet_block_explorers = {
     'zclbex.duckdns.org:3001': ('http://zclbex.duckdns.org:3001',
                         {'tx': 'tx', 'addr': 'address'}),
     'zclassic-ce.io': ('http://zclassic-ce.io',
+                        {'tx': 'tx', 'addr': 'address'}),
+    'explorer.zclassic.org': ('https://explorer.zclassic.org',
                         {'tx': 'tx', 'addr': 'address'}),
 }
 

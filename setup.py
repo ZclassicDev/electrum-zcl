@@ -83,9 +83,9 @@ setup(
     scripts=['electrum-zcl'],
     data_files=data_files,
     description="Lightweight Zclassic Wallet",
-    author="Zclassic CE",
-    author_email="team@zclassic-ce.org",
+    author="Zclassic Developers",
+    author_email="zclassic.org@gmail.com",
     license="MIT Licence",
-    url="https://zclassic-ce.org",
+    url="https://zclassic.org",
     long_description="""Lightweight Zclassic Wallet"""
 )

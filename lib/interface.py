@@ -33,6 +33,9 @@ import traceback
 
 from .util import print_error
 
+import requests
+ca_path = requests.certs.where()
+
 from . import util
 from . import x509
 from . import pem

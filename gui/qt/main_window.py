@@ -47,7 +47,7 @@ from electrum.i18n import _
 from electrum.util import (format_time, format_satoshis, PrintError,
                            format_satoshis_plain, NotEnoughFunds,
                            UserCancelled, NoDynamicFeeEstimates, profiler,
-                           export_meta, import_meta, bh2u, bfh)
+                           export_meta, import_meta, bh2u, bfh, is_macOS)
 from electrum import Transaction
 from electrum import util, bitcoin, commands, coinchooser
 from electrum import paymentrequest
@@ -372,7 +372,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.setGeometry(100, 100, 840, 400)
 
     def watching_only_changed(self):
-        name = "Zclassic Electrum TESTNET" if constants.net.TESTNET else "Zclassic Electrum"
+        name = "[TESTNET] Zclassic Electrum" if constants.net.TESTNET else "Zclassic Electrum"
         title = '%s %s  -  %s' % (name, self.wallet.electrum_version,
                                         self.wallet.basename())
         extra = [self.wallet.storage.get('wallet_type', '?')]
@@ -531,7 +531,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         help_menu = menubar.addMenu(_("&Help"))
         help_menu.addAction(_("&About"), self.show_about)
-        help_menu.addAction(_("&Official website"), lambda: webbrowser.open("https://zclassic-ce.org"))
+        help_menu.addAction(_("&Official website"), lambda: webbrowser.open("https://zclassic.org"))
         help_menu.addSeparator()
         help_menu.addAction(_("&Documentation"), lambda: webbrowser.open("https://github.com/z-classic/electrum-zcl/")).setShortcut(QKeySequence.HelpContents)
         help_menu.addAction(_("&Report Bug"), self.show_report_bug)
@@ -591,7 +591,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                         self.tx_notifications.remove(tx)
                         is_relevant, is_mine, v, fee = self.wallet.get_wallet_delta(tx)
                         if v > 0:
-                            self.notify(_("New Transaction: {}").format(self.format_amount_and_units(v)))
+                            self.notify(_("New transaction received: {}").format(self.format_amount_and_units(v)))
 
     def notify(self, message):
         if self.tray:
@@ -1040,7 +1040,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         from .paytoedit import PayToEdit
         self.amount_e = BTCAmountEdit(self.get_decimal_point)
-        self.payto_e = PayToEdit(self)
+        self.payto_e = PayToEdit(self, show_qrscanner=(is_macOS is False))
         msg = _('Recipient of the funds.') + '\n\n'\
               + _('You may enter a Zclassic address, a label from your list of contacts (a list of completions will be proposed), or an alias (email-like address that forwards to a Zclassic address)')
         payto_label = HelpLabel(_('Pay to'), msg)
@@ -1184,7 +1184,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         grid.addLayout(vbox_feecontrol, 5, 1, 1, -1)
 
-        if not self.config.get('show_fee', False):
+        if not self.config.get('show_fee', True):
             self.fee_adv_controls.setVisible(False)
 
         self.preview_button = EnterButton(_("Preview"), self.do_preview)
@@ -1335,8 +1335,13 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             # actual fees often differ somewhat.
             if freeze_feerate or self.fee_slider.is_active():
                 displayed_feerate = self.feerate_e.get_amount()
-                displayed_feerate = displayed_feerate // 1000 if displayed_feerate else 0
-                displayed_fee = displayed_feerate * size
+                if displayed_feerate:
+                    displayed_feerate = displayed_feerate // 1000
+                else:
+                    # fallback to actual fee
+                    displayed_feerate = fee // size if fee is not None else None
+                    self.feerate_e.setAmount(displayed_feerate)
+                displayed_fee = displayed_feerate * size if displayed_feerate is not None else None
                 self.fee_e.setAmount(displayed_fee)
             else:
                 if freeze_fee:
@@ -1441,7 +1446,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
     def read_send_tab(self):
         if self.payment_request and self.payment_request.has_expired():
-            self.show_error(_('Payment request has expired'))
+            self.show_error(_('Payment request has expired.'))
             return
         label = self.message_e.text()
 
@@ -1450,7 +1455,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         else:
             errors = self.payto_e.get_errors()
             if errors:
-                self.show_warning(_("Invalid lines found:") + "\n\n" + '\n'.join([ _("Line #") + str(x[0]+1) + ": " + x[1] for x in errors]))
+                self.show_warning(_("Invalid Lines found:") + "\n\n" + '\n'.join([ _("Line #") + str(x[0]+1) + ": " + x[1] for x in errors]))
                 return
             outputs = self.payto_e.get_outputs(self.is_max)
 
@@ -1594,7 +1599,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             pr = self.payment_request
             if pr and pr.has_expired():
                 self.payment_request = None
-                return False, _("Payment request has expired")
+                return False, _("Payment request has expired.")
             status, msg =  self.network.broadcast(tx)
             if pr and status is True:
                 self.invoices.set_paid(pr, tx.txid())
@@ -1686,7 +1691,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.payment_request_error_signal.emit()
 
     def pay_to_URI(self, URI):
-        if not URI:
+        if not URI or not isinstance(URI, str):
             return
         try:
             out = util.parse_URI(URI, self.on_pr)
@@ -2633,13 +2638,22 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         fee_type_label = HelpLabel(_('Fee estimation') + ':', msg)
         fee_type_combo = QComboBox()
         fee_type_combo.addItems([_('Static'), _('ETA'), _('Mempool')])
-        fee_type_combo.setCurrentIndex(1 if self.config.use_mempool_fees() else 0)
+        fee_type_combo.setCurrentIndex((2 if self.config.use_mempool_fees() else 1) if self.config.is_dynfee() else 0)
         def on_fee_type(x):
             self.config.set_key('mempool_fees', x==2)
             self.config.set_key('dynamic_fees', x>0)
             self.fee_slider.update()
         fee_type_combo.currentIndexChanged.connect(on_fee_type)
         fee_widgets.append((fee_type_label, fee_type_combo))
+
+        feebox_cb = QCheckBox(_('Edit fees manually'))
+        feebox_cb.setChecked(self.config.get('show_fee', False))
+        feebox_cb.setToolTip(_("Show fee edit box in send tab."))
+        def on_feebox(x):
+            self.config.set_key('show_fee', x == Qt.Checked)
+            self.fee_adv_controls.setVisible(bool(x))
+        feebox_cb.stateChanged.connect(on_feebox)
+        fee_widgets.append((feebox_cb, None))
 
         use_rbf_cb = QCheckBox(_('Use Replace-By-Fee'))
         use_rbf_cb.setChecked(self.config.get('use_rbf', True))
@@ -2736,8 +2750,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         gui_widgets.append((unit_label, unit_combo))
 
         block_explorers = sorted(util.block_explorer_info().keys())
-        msg = _('Choose which block explorer to use for transaction info')
-        block_ex_label = HelpLabel(_('Block Explorer') + ':', msg)
+        msg = _('Choose which online block explorer to use for functions that open a web browser')
+        block_ex_label = HelpLabel(_('Online Block Explorer') + ':', msg)
         block_ex_combo = QComboBox()
         block_ex_combo.addItems(block_explorers)
         block_ex_combo.setCurrentIndex(block_ex_combo.findText(util.block_explorer(self.config)))

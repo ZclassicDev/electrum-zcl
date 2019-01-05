@@ -29,7 +29,6 @@ import hmac
 import os
 import json
 
-import struct
 import ecdsa
 import pyaes
 
@@ -253,18 +252,26 @@ def ser_uint256(u):
         u >>= 32
     return rs
 
+# END ZCASH specific utils #
+# ######################## #
+
+
 def sha256(x):
-    x = to_bytes(x, 'utf8')
+    if isinstance(x, str):
+        x = x.encode('utf8')
     return bytes(hashlib.sha256(x).digest())
+
 
 def Hash(x):
     x = to_bytes(x, 'utf8')
     out = bytes(sha256(sha256(x)))
     return out
 
+
 hash_encode = lambda x: bh2u(x[::-1])
 hash_decode = lambda x: bfh(x)[::-1]
 hmac_sha_512 = lambda x, y: hmac.new(x, y, hashlib.sha512).digest()
+
 
 def is_new_seed(x, prefix=version.SEED_PREFIX):
     from . import mnemonic
@@ -485,7 +492,10 @@ def base_decode(v, length, base):
         chars = __b43chars
     long_value = 0
     for (i, c) in enumerate(v[::-1]):
-        long_value += chars.find(bytes([c])) * (base**i)
+        digit = chars.find(bytes([c]))
+        if digit == -1:
+            raise ValueError('Forbidden character {} for base {}'.format(c, base))
+        long_value += digit * (base**i)
     result = bytearray()
     while long_value >= 256:
         div, mod = divmod(long_value, 256)
@@ -505,6 +515,10 @@ def base_decode(v, length, base):
     return bytes(result)
 
 
+class InvalidChecksum(Exception):
+    pass
+
+
 def EncodeBase58Check(vchIn):
     hash = Hash(vchIn)
     return base_encode(vchIn + hash[0:4], base=58)
@@ -517,7 +531,7 @@ def DecodeBase58Check(psz):
     hash = Hash(key)
     cs32 = hash[0:4]
     if cs32 != csum:
-        return None
+        raise InvalidChecksum('expected {}, actual {}'.format(bh2u(cs32), bh2u(csum)))
     else:
         return key
 
@@ -556,9 +570,11 @@ def deserialize_privkey(key):
     if ':' in key:
         txin_type, key = key.split(sep=':', maxsplit=1)
         assert txin_type in SCRIPT_TYPES
-    vch = DecodeBase58Check(key)
-    if not vch:
-        raise BaseException("cannot deserialize", key)
+    try:
+        vch = DecodeBase58Check(key)
+    except BaseException:
+        neutered_privkey = str(key)[:3] + '..' + str(key)[-2:]
+        raise BaseException("cannot deserialize", neutered_privkey)
 
     if txin_type is None:
         # keys exported in version 3.0.x encoded script type in first byte
@@ -649,7 +665,7 @@ from ecdsa.util import string_to_number, number_to_string
 
 def msg_magic(message):
     length = bfh(var_int(len(message)))
-    return b"\x19Zcash Signed Message:\n" + length + message
+    return b"\x19Zclassic Signed Message:\n" + length + message
 
 
 def verify_message(address, sig, message):

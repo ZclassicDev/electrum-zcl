@@ -24,6 +24,7 @@ Development Version
 First, clone from Github::
 
     git clone https://github.com/z-classic/electrum-zcl.git
+    git checkout develop
     cd electrum-zcl
 
 For Mac:
@@ -103,6 +104,16 @@ Run the docker image::
 
 See `contrib/build-osx/`.
 
+
+MacOS
+------
+
+Simply - ::
+
+    ./setup-mac.sh
+
+    sudo ./create-dmg.sh
+
 Windows
 -------
 
@@ -113,6 +124,7 @@ Android
 -------
 
 See `gui/kivy/Readme.txt` file.
+UPSTREAM PATCH: https://github.com/spesmilo/electrum/blob/master/gui/kivy/Readme.md
 
 ---
 
@@ -139,6 +151,12 @@ Here is a good initial check to determine whether things are working (should suc
 
 The Zclassic Wiki is located at: https://github.com/z-classic/zclassic/wiki. Please use this as a reference and feel free to contribute.
 
+There is also an Electrum-ZCL wiki at: https://github.com/z-classic/electrum-zcl/wiki. It contains information about setting up the ElectrumX Server (https://github.com/ZclassicDev/electrumx), which is the provider for block and peer data.
+
+--
+
+Here is our roadmap for zk-SNARKs integration: https://github.com/z-classic/electrum-zcl/wiki/Shielded-Transactions
+
 
 Original Project Info
 ---------------------
@@ -163,6 +181,6 @@ Original Project Info
 
 ---
 
-The Zclassic CE Team
+The Zclassic Developers
 
 ZCL: t3eYEnoMmfUV65CZvPvV2mfAUnfFGoFbkJu

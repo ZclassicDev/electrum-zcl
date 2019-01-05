@@ -50,7 +50,7 @@ class SPV(ThreadJob):
                 header = blockchain.read_header(tx_height)
                 if header is None:
                     index = tx_height // constants.net.CHUNK_SIZE
-                    if index < len(blockchain.checkpoints):
+                    if index < len(blockchain.checkpoints): # TODO confirm this if statement from merge
                         self.network.request_chunk(interface, index)
                 else:
                     if tx_hash not in self.merkle_roots:

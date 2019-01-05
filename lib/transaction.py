@@ -544,10 +544,10 @@ def deserialize(raw):
     d['inputs'] = [parse_input(vds) for i in range(n_vin)]
     n_vout = vds.read_compact_size()
     d['outputs'] = [parse_output(vds, i) for i in range(n_vout)]
-    if is_segwit:
-        for i in range(n_vin):
-            txin = d['inputs'][i]
-            parse_witness(vds, txin)
+    #if is_segwit:
+    #    for i in range(n_vin):
+    #        txin = d['inputs'][i]
+    #        parse_witness(vds, txin)
     d['lockTime'] = vds.read_uint32()
     return d
 

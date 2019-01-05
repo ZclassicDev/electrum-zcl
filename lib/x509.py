@@ -334,8 +334,9 @@ def load_certificates(ca_path):
 
 
 if __name__ == "__main__":
+    import requests
 
     util.set_verbosity(True)
-    ca_path = get_cert_path()
+    ca_path = requests.certs.where()
 
     ca_list, ca_keyID = load_certificates(ca_path)

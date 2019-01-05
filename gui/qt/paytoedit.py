@@ -42,8 +42,8 @@ normal_style = "QPlainTextEdit { }"
 
 class PayToEdit(ScanQRTextEdit):
 
-    def __init__(self, win):
-        ScanQRTextEdit.__init__(self)
+    def __init__(self, win, show_qrscanner=True):
+        ScanQRTextEdit.__init__(self, show_qrscanner=show_qrscanner)
         self.win = win
         self.amount_edit = win.amount_e
         self.document().contentsChanged.connect(self.update_size)
@@ -259,7 +259,7 @@ class PayToEdit(ScanQRTextEdit):
         self.c.complete(cr)
 
     def qr_input(self):
-        data = super(PayToEdit,self).qr_input()
+        data = super(PayToEdit, self).qr_input()
         if data.startswith("bitcoin:"):
             self.scan_f(data)
             # TODO: update fee
